@@ -1,6 +1,6 @@
 # RAG-Local-LLM
 This project is an implementation of RAG technology which stands for Retrieval-Augmented Generation.
-![RAG-UI](hello doğru cevap.png)
+![RAG-UI](first.png)
 
 
 # RAG Pipeline
