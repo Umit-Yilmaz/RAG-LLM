@@ -1,5 +1,6 @@
 # RAG-Local-LLM
 This project is an implementation of RAG technology which stands for Retrieval-Augmented Generation.
+![RAG-UI](hello doğru cevap.png)
 
 
 # RAG Pipeline
@@ -75,6 +76,8 @@ This project is an implementation of RAG technology which stands for Retrieval-A
      ```sh
    python ask.py "What is RAG?"
    ```
+
+![RagEn](example1.jpeg)     
 
 # **Data Folder
 
@@ -180,6 +183,8 @@ List the authors of the project.
      ```sh
    python ask.py "What is RAG?"
    ```
+     ![RagEn](example1.jpeg)     
+
 
 ### **Data Klasörü
 
