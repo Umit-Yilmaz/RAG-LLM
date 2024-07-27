@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .chat-box {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .chat-bubble {
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .user-message {
+            background-color: #d1e7dd;
+            text-align: right;
+        }
+        .ai-message {
+            background-color: #f8d7da;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="text-center">Retrieval Augmented Generation</h1>
+    <div class="chat-box border p-3 mb-3">
+        <div id="chat"></div>
+    </div>
+    <div class="input-group mb-3">
+        <input type="text" id="userInput" class="form-control" placeholder="Mesajınızı girin..." aria-label="Mesajınızı girin...">
+        <div class="input-group-append">
+            <button class="btn btn-primary" type="button" id="sendButton">Gönder</button>
+        </div>
+    </div>
+    <button class="btn btn-secondary" id="downloadPDF">PDF İndir</button>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#sendButton').click(function(){
+            var userInput = $('#userInput').val();
+            if(userInput) {
+                $('#chat').append('<div class="chat-bubble user-message">' + userInput + '</div>');
+                $('#userInput').val('');
+
+                // AJAX ile API çağrısı
+                $.ajax({
+                    url: 'http://localhost:5000/query',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ query: userInput }),
+                    success: function(response) {
+                        var aiResponse = response.response;
+                        $('#chat').append('<div class="chat-bubble ai-message">' + aiResponse + '</div>');
+                        $('.chat-box').scrollTop($('.chat-box')[0].scrollHeight);
+                    },
+                    error: function() {
+                        $('#chat').append('<div class="chat-bubble ai-message">AI yanıtı alınamadı.</div>');
+                        $('.chat-box').scrollTop($('.chat-box')[0].scrollHeight);
+                    }
+                });
+            }
+        });
+
+        $('#userInput').keypress(function(e){
+            if(e.which == 13) {
+                $('#sendButton').click();
+            }
+        });
+
+        $('#downloadPDF').click(function(){
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const margin = 20; // 2 cm margin (1 cm = 10 mm, so 20 mm)
+            const pageWidth = doc.internal.pageSize.width;
+            const pageHeight = doc.internal.pageSize.height;
+            let y = margin;
+
+            $('#chat').children().each(function() {
+                let text = $(this).text();
+                const isUserMessage = $(this).hasClass('user-message');
+                const isAIMessage = $(this).hasClass('ai-message');
+
+                // İlk 10 karakteri kaldır
+                if (isAIMessage && text.length > 11) {
+                    text = text.substring(11);
+                }
+
+                doc.setFontSize(isUserMessage ? 16 : 12); // Kullanıcı mesajları için başlık boyutu
+                const lineHeight = isUserMessage ? 15 : 10; // Paragraf satır yüksekliği
+
+                if (isUserMessage) {
+                    doc.setTextColor(255, 0, 0); // Kırmızı renk
+                    // Başlık hizalama ve satırlara bölme
+                    const lines = doc.splitTextToSize(text, pageWidth - 2 * margin);
+                    lines.forEach(line => {
+                        const textWidth = doc.getTextWidth(line);
+                        const x = (pageWidth - textWidth) / 2; // Sayfanın ortasına hizalama
+                        if (y + lineHeight > pageHeight - margin) {
+                            doc.addPage();
+                            y = margin;
+                        }
+                        doc.text(line, x, y);
+                        y += lineHeight;
+                    });
+                    y += 10; // Başlık sonrası boşluk
+                } else if (isAIMessage) {
+                    doc.setTextColor(0, 0, 0); // Siyah renk
+                    // Metni sayfanın ortasına hizalamak için x koordinatını hesapla
+                    const lines = doc.splitTextToSize(text, pageWidth - 2 * margin);
+                    const x = margin; // Metin sol kenardan başlayacak
+                    lines.forEach(line => {
+                        if (y + lineHeight > pageHeight - margin) {
+                            doc.addPage();
+                            y = margin;
+                        }
+                        doc.text(line, x, y);
+                        y += lineHeight;
+                    });
+                    y += 15; // Mesajlar arası boşluk
+                }
+            });
+
+            // "Sources" ekleme kodu
+            const sources = $('#sources').text().trim();
+            if (sources) { // Sadece kaynak varsa ekle
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0); // Siyah renk
+                const lines = doc.splitTextToSize(sources, pageWidth - 2 * margin);
+                const x = margin; // Metin sol kenardan başlayacak
+                lines.forEach(line => {
+                    if (y + lineHeight > pageHeight - margin) {
+                        doc.addPage();
+                        y = margin;
+                    }
+                    doc.text(line, x, y);
+                    y += lineHeight;
+                });
+            }
+
+            doc.save('chat-history.pdf');
+        });
+    });
+</script>
+
+</body>
+</html>

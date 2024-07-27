@@ -1,0 +1,12 @@
+pypdf
+langchain
+langchain_community
+flask
+flask_cors
+chromadb == 0.5.3 
+pytest
+boto3
+flask
+pymupdf
+fitz
+tool
