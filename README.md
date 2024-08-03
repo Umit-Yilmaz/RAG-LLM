@@ -8,7 +8,7 @@ You can ask questions to your PDF files with its easy-to-use interface.
 
 
 # RAG Pipeline
-![RagEn](1.png)
+![RagEn](new1.png)
 
 # 1 - Setup Part
 
@@ -117,7 +117,7 @@ List the authors of the project.
 
 
 # RAG Hattı
-![RagTr](2.png)
+![RagTr](new2.png)
 
 
 # 1 - Kurulum Bölümü
