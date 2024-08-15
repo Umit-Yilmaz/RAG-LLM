@@ -16,18 +16,18 @@ DATA_PATH = "data"
 
 
 # Batch size 41666 yerine 100000 olarak ayarlanır
-client = chromadb.PersistentClient(path=DATA_PATH)
-large_batch = [(f"{uuid.uuid4()}", f"document {i}", [0.1] * 1536) for i in range(100000)]
-ids, documents, embeddings = zip(*large_batch)
-batches = create_batches(api=client,ids=list(ids), documents=list(documents), embeddings=list(embeddings))
-collection = client.get_or_create_collection("test")
-for batch in batches:
-    print(f"Adding batch of size {len(batch[0])}")
-    collection.add(ids=batch[0],
-                   documents=batch[3],
-                   embeddings=batch[1],
-                   metadatas=batch[2])
-
+#client = chromadb.PersistentClient(path=DATA_PATH)
+#large_batch = [(f"{uuid.uuid4()}", f"document {i}", [0.1] * 1536) for i in range(100000)]
+#ids, documents, embeddings = zip(*large_batch)
+#batches = create_batches(api=client,ids=list(ids), documents=list(documents), embeddings=list(embeddings))
+#collection = client.get_or_create_collection("test")
+#for batch in batches:
+#    print(f" Batch size {len(batch[0])}")
+#    collection.add(ids=batch[0],
+#                   documents=batch[3],
+#                   embeddings=batch[1],
+#                   metadatas=batch[2])
+#Güncel chroma bu koda izin vermemektedir
 
 
 def main():
@@ -37,7 +37,7 @@ def main():
     args = parser.parse_args()
     
     if args.reset:
-        print("Clearing Database")
+        print("Veritabanı siliniyor")
         clear_database()
 
     documents = load_documents()
@@ -71,7 +71,7 @@ def add_to_chroma(chunks: list[Document]):
     # Add or Update the documents.
     existing_items = db.get(include=[])  # IDs are always included by default
     existing_ids = set(existing_items["ids"])
-    print(f"Number of existing documents in DB: {len(existing_ids)}")
+    print(f"Veritabanında bulunan doküman sayısı: {len(existing_ids)}")
 
     # Only add documents that don't exist in the DB.
     new_chunks = []
@@ -80,17 +80,17 @@ def add_to_chroma(chunks: list[Document]):
             new_chunks.append(chunk)
 
     if len(new_chunks):
-        print(f"Adding new documents: {len(new_chunks)}")
+        print(f"{len(new_chunks)} adet doküman ekleniyor")
         new_chunk_ids = [chunk.metadata["id"] for chunk in new_chunks]
         db.add_documents(new_chunks, ids=new_chunk_ids)
         db.persist()
     else:
-        print("*No new documents to add*")
+        print("*Veritabanı zaten hazır*")
 
 
 def calculate_chunk_ids(chunks):
 
-    # This will create IDs like "data/monopoly.pdf:6:2"
+    # This will create IDs like "data/DocumentName.pdf:3:1"
     # Page Source : Page Number : Chunk Index
 
     last_page_id = None
